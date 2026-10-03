@@ -1,15 +1,13 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, render_template, request
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "bunkmeter-dev-secret")
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 TARGET = 75
 
 
@@ -111,45 +109,7 @@ def build_summary(subjects, target):
 
 @app.route("/")
 def index():
-    if not session.get("is_authenticated"):
-        return redirect(url_for("login"))
-    return render_template("index.html", user_email=session.get("user_email", "Student"))
-
-
-@app.route("/login")
-def login():
-    return render_template(
-        "login.html",
-        supabase_url=SUPABASE_URL,
-        supabase_anon_key=SUPABASE_ANON_KEY,
-    )
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-
-@app.route("/api/auth/session", methods=["POST"])
-def auth_session():
-    payload = request.get_json(force=True, silent=True) or {}
-    access_token = payload.get("access_token")
-    if not access_token:
-        return jsonify({"ok": False, "error": "Missing access token"}), 400
-
-    session["supabase_access_token"] = access_token
-    session["user_email"] = payload.get("user_email") or payload.get("email") or "student@bunkmeter.app"
-    session["is_authenticated"] = True
-    return jsonify({"ok": True, "redirect": url_for("index")})
-
-
-@app.route("/api/config")
-def app_config():
-    return jsonify({
-        "supabase_url": SUPABASE_URL,
-        "supabase_anon_key": SUPABASE_ANON_KEY,
-    })
+    return render_template("index.html")
 
 
 @app.route("/api/calc", methods=["POST"])
